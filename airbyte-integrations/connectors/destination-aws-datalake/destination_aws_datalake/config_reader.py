@@ -20,6 +20,7 @@ class ConnectorConfig:
         bucket_prefix: str = None,
         lakeformation_database_name: str = None,
         table_name: str = None,
+        serialization_library: str = "org.openx.data.jsonserde.JsonSerDe",
     ):
         self.aws_account_id = aws_account_id
         self.credentials = credentials
@@ -29,6 +30,7 @@ class ConnectorConfig:
         self.bucket_prefix = bucket_prefix
         self.lakeformation_database_name = lakeformation_database_name
         self.table_name = table_name
+        self.serialization_library = serialization_library
 
         if self.credentials_type == AuthMode.IAM_USER.value:
             self.aws_access_key = self.credentials.get("aws_access_key_id")

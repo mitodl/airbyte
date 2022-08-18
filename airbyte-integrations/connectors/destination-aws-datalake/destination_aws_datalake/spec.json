@@ -8,7 +8,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "AWS Datalake Destination Spec",
     "type": "object",
-    "required": ["credentials", "region", "bucket_name", "bucket_prefix"],
+    "required": ["credentials", "region", "bucket_name", "bucket_prefix", "serialization_library"],
     "additionalProperties": false,
     "properties": {
       "aws_account_id": {
@@ -101,6 +101,17 @@
         "type": "string",
         "description": "Which database to use",
         "airbyte_secret": false
+      },
+      "serialization_library": {
+        "title": "Serialization Library",
+        "description": "The library that your query engine will use for reading and writing data in your lake.",
+        "airbyte_secret": false,
+        "type": "string",
+        "enum": [
+          "org.openx.data.jsonserde.JsonSerDe",
+          "org.apache.hive.hcatalog.data.JsonSerDe"
+        ],
+        "default": "org.openx.data.jsonserde.JsonSerDe"
       }
     }
   }

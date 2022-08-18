@@ -22,6 +22,7 @@ class StreamWriter:
         self._sync_mode = sync_mode
         self._messages = []
         self._logger = aws_handler.logger
+        self._serialization_library = connector_config.serialization_library
 
         self._logger.debug(f"Creating StreamWriter for {self._db}:{self._table}")
         if sync_mode == DestinationSyncMode.overwrite:
@@ -49,7 +50,7 @@ class StreamWriter:
             object_prefix = f"{self._prefix}/{self._table}"
             table_location = "s3://" + self._bucket + "/" + self._prefix + "/" + self._table + "/"
 
-            table = self._aws_handler.get_table(tx.txid, self._db, self._table, table_location)
+            table = self._aws_handler.get_table(tx.txid, self._db, self._table, table_location, self._serialization_library)
             self._aws_handler.update_table_schema(tx.txid, self._db, table, self._schema)
 
             if len(self._messages) > 0:

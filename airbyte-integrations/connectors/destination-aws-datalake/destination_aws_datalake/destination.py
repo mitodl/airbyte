@@ -103,6 +103,7 @@ class DestinationAwsDatalake(Destination):
                 database_name=connector_config.lakeformation_database_name,
                 table_name="airbyte_test",
                 location=table_location,
+                serialization_library=connector_config.serialization_library,
             )
         if table is None:
             message = f"Could not create a table in database {connector_config.lakeformation_database_name}"

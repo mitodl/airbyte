@@ -72,7 +72,7 @@ class AwsHandler:
         for ndx in range(0, size, n):
             yield iterable[ndx : min(ndx + n, size)]
 
-    def get_table(self, txid, database_name: str, table_name: str, location: str):
+    def get_table(self, txid, database_name: str, table_name: str, location: str, serialization_library: str):
         table = None
         try:
             table = self.glue_client.get_table(DatabaseName=database_name, Name=table_name, TransactionId=txid)
@@ -85,7 +85,7 @@ class AwsHandler:
                         "Location": location,
                         "InputFormat": "org.apache.hadoop.mapred.TextInputFormat",
                         "OutputFormat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
-                        "SerdeInfo": {"SerializationLibrary": "org.openx.data.jsonserde.JsonSerDe", "Parameters": {"paths": ","}},
+                        "SerdeInfo": {"SerializationLibrary": serialization_library, "Parameters": {"paths": ","}},
                     },
                     "PartitionKeys": [],
                     "Parameters": {"classification": "json", "lakeformation.aso.status": "true"},
