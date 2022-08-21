@@ -32,6 +32,7 @@ that appropriate policies are in place. Select "ROLE" if you are using a role, "
 - Secret Access Key : The Secret Access Key ID of the user if "Authentication mode" was "USER"
 - S3 Bucket Name : The bucket in which the data will be written. You will find the instructions to create a new S3 bucket [here](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html).
 - Target S3 Bucket Prefix : A prefix to prepend to the file name when writing to the bucket
+- Serialization Library: Tables in AWS Glue require setting the classpath of the library that will be used by the query engine to read and write the data being stored. The default is to use the OpenX version which is the default used by [AWS Athena](https://aws.amazon.com/athena/). The Hive version is used by engines such as [Trino](https://trino.io/).
 - Database : The database in which the tables will be created. You will find the instructions to create a new Lakeformation Database [here](https://docs.aws.amazon.com/lake-formation/latest/dg/creating-database.html).
 
 **Assigning proper permissions**
@@ -69,5 +70,6 @@ and types in the destination table as in the source except for the following typ
 
 ## Changelog
 
+| 0.1.2 | 2022-08-21 | [\#15769](https://github.com/airbytehq/airbyte/pull/15769) | Add selector for JSON serialization library |
 | 0.1.1 | 2022-04-20 | [\#11811](https://github.com/airbytehq/airbyte/pull/11811) | Fix name of required param in specification |
 | 0.1.0 | 2022-03-29 | [\#10760](https://github.com/airbytehq/airbyte/pull/10760) | Initial release |
