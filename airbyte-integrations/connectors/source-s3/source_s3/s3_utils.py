@@ -40,7 +40,20 @@ def _get_s3_client_args(provider: dict, config: Config) -> dict:
     :param config Client config parameter in case of using creds from .aws/config file.
     :return map of s3 client arguments.
     """
-    client_kv_args = {"config": config}
+    client_kv_args = {}
+    authentication_method = get_authentication_method(provider)
+
+    if authentication_method == AuthenticationMethod.ACCESS_KEY_SECRET_ACCESS_KEY:
+        client_kv_args["aws_access_key_id"] = provider.get("aws_access_key_id")
+        client_kv_args["aws_secret_access_key"] = provider.get("aws_secret_access_key")
+        client_kv_args["config"] = Config()
+    elif authentication_method == AuthenticationMethod.DEFAULT:
+        client_kv_args["config"] = Config()
+    elif authentication_method == AuthenticationMethod.UNSIGNED:
+        client_kv_args["config"] = Config(signature_version=UNSIGNED)
+    else:
+        raise Exception("Could not set up boto client since a valid authentication method was not determined.")
+
     endpoint = provider.get("endpoint")
     if endpoint:
         # endpoint could be None or empty string, set to default Amazon endpoint in
