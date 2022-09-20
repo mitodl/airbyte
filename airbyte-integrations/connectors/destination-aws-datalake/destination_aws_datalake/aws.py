@@ -193,7 +193,7 @@ class AwsHandler:
         return flat_list
 
     def purge_table(self, txid, database, table):
-        self.logger.debug(f"Going to purge table {table}")
+        self.logger.info(f"Going to purge table {table}")
         write_ops = []
         all_objects = self.get_all_table_objects(txid, database, table)
         write_ops.extend([{"DeleteObject": {"Uri": o["Uri"]}} for o in all_objects])

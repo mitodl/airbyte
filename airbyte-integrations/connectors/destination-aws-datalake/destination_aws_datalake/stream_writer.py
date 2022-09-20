@@ -25,9 +25,9 @@ class StreamWriter:
         self._logger = aws_handler.logger
         self._serialization_library = connector_config.serialization_library
 
-        self._logger.debug(f"Creating StreamWriter for {self._db}:{self._table}")
+        self._logger.info(f"Creating StreamWriter for {self._db}:{self._table}")
         if sync_mode == DestinationSyncMode.overwrite:
-            self._logger.debug(f"StreamWriter mode is OVERWRITE, need to purge {self._db}:{self._table}")
+            self._logger.info(f"StreamWriter mode is OVERWRITE, need to purge {self._db}:{self._table}")
             with LakeformationTransaction(self._aws_handler) as tx:
                 self._aws_handler.purge_table(tx.txid, self._db, self._table)
 
@@ -64,7 +64,7 @@ class StreamWriter:
                     self._aws_handler.update_governed_table(
                         tx.txid, self._db, self._table, self._bucket, object_key, res["ETag"], res["ContentLength"]
                     )
-                    self._logger.debug(f"Table {self._table} was updated")
+                    self._logger.info(f"Table {self._table} was updated")
                 except Exception as e:
                     self._logger.error(f"An exception was raised:\n{repr(e)}")
                     raise (e)

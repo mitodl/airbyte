@@ -43,7 +43,7 @@ class DestinationAwsDatalake(Destination):
         except ClientError as e:
             self.logger.error(f"Could not create session due to exception {repr(e)}")
             raise
-        self.logger.debug("AWS session creation OK")
+        self.logger.info("AWS session creation OK")
 
         # creating stream writers
         streams = {
