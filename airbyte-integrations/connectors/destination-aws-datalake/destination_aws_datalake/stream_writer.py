@@ -12,13 +12,14 @@ from .aws import AwsHandler, LakeformationTransaction
 
 
 class StreamWriter:
-    def __init__(self, name, aws_handler: AwsHandler, connector_config, schema, sync_mode):
+    def __init__(self, name, aws_handler: AwsHandler, connector_config, schema, sync_mode, namespace):
         self._db = connector_config.lakeformation_database_name
         self._bucket = connector_config.bucket_name
         self._prefix = connector_config.bucket_prefix
         self._table = name
         self._aws_handler = aws_handler
         self._schema = schema
+        self._namespace = namespace
         self._sync_mode = sync_mode
         self._messages = []
         self._logger = aws_handler.logger
@@ -57,7 +58,7 @@ class StreamWriter:
                 try:
                     self._logger.debug(f"There are {len(self._messages)} messages to flush for {self._table}")
                     self._logger.debug(f"10 first messages >>> {repr(self._messages[0:10])} <<<")
-                    object_key = self.generate_object_key(object_prefix)
+                    object_key = self.generate_object_key(object_prefix, prefix=self.namespace)
                     self._aws_handler.put_object(object_key, self._messages)
                     res = self._aws_handler.head_object(object_key)
                     self._aws_handler.update_governed_table(
