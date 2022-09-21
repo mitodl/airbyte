@@ -8,7 +8,13 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "AWS Datalake Destination Spec",
     "type": "object",
-    "required": ["credentials", "region", "bucket_name", "bucket_prefix", "serialization_library"],
+    "required": [
+      "credentials",
+      "region",
+      "bucket_name",
+      "bucket_prefix",
+      "serialization_library"
+    ],
     "additionalProperties": false,
     "properties": {
       "aws_account_id": {

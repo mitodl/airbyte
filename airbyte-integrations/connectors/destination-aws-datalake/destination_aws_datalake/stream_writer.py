@@ -25,7 +25,7 @@ class StreamWriter:
         self._logger = aws_handler.logger
         self._serialization_library = connector_config.serialization_library
 
-        self._logger.info(f"Creating StreamWriter for {self._db}:{self._table}")
+        self._logger.info(f"Creating StreamWriter for {self._db}:{self._table} with namespace {namespace}")
         if sync_mode == DestinationSyncMode.overwrite:
             self._logger.info(f"StreamWriter mode is OVERWRITE, need to purge {self._db}:{self._table}")
             with LakeformationTransaction(self._aws_handler) as tx:
@@ -48,8 +48,8 @@ class StreamWriter:
     def add_to_datalake(self):
         with LakeformationTransaction(self._aws_handler) as tx:
             self._logger.debug(f"Flushing messages to table {self._table}")
-            object_prefix = f"{self._prefix}/{self._table}"
-            table_location = "s3://" + self._bucket + "/" + self._prefix + "/" + self._table + "/"
+            object_prefix = f"{self._prefix}/{self._namespace}/{self._table}"
+            table_location = "s3://" + self._bucket + "/" + self._prefix + "/" + self._namespace + "/" + self._table + "/"
 
             table = self._aws_handler.get_table(tx.txid, self._db, self._table, table_location, self._serialization_library)
             self._aws_handler.update_table_schema(tx.txid, self._db, table, self._schema)
@@ -58,7 +58,7 @@ class StreamWriter:
                 try:
                     self._logger.debug(f"There are {len(self._messages)} messages to flush for {self._table}")
                     self._logger.debug(f"10 first messages >>> {repr(self._messages[0:10])} <<<")
-                    object_key = self.generate_object_key(object_prefix, prefix=self.namespace)
+                    object_key = self.generate_object_key(object_prefix)
                     self._aws_handler.put_object(object_key, self._messages)
                     res = self._aws_handler.head_object(object_key)
                     self._aws_handler.update_governed_table(

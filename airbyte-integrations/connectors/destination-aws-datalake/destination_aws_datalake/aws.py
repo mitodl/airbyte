@@ -3,6 +3,7 @@
 #
 
 import json
+from urllib.parse import urlparse
 
 import boto3
 from airbyte_cdk.destinations import Destination
@@ -197,6 +198,7 @@ class AwsHandler:
         write_ops = []
         all_objects = self.get_all_table_objects(txid, database, table)
         write_ops.extend([{"DeleteObject": {"Uri": o["Uri"]}} for o in all_objects])
+        s3_objects = [{"Bucket": urlparse(o["Uri"]).netloc, "Key": urlparse(o["Uri"]).path.lstrip("/")} for o in all_objects]
         if len(write_ops) > 0:
             self.logger.debug(f"{len(write_ops)} objects to purge")
             for batch in self.batch_iterate(write_ops, 99):
@@ -211,6 +213,8 @@ class AwsHandler:
                 except ClientError as e:
                     self.logger.error(f"Could not delete object due to exception {repr(e)}")
                     raise
+            for s3_object in s3_objects:
+                self.s3_client.delete_object(**s3_object)
         else:
             self.logger.debug("Table was empty, nothing to purge.")
 

@@ -53,7 +53,7 @@ class DestinationAwsDatalake(Destination):
                 connector_config=connector_config,
                 schema=s.stream.json_schema["properties"],
                 sync_mode=s.destination_sync_mode,
-                namespace=s.namespace,
+                namespace=s.stream.namespace,
             )
             for s in configured_catalog.streams
         }
