@@ -7,10 +7,49 @@ from urllib.parse import urlparse
 
 import boto3
 from airbyte_cdk.destinations import Destination
+from botocore.credentials import RefreshableCredentials
 from botocore.exceptions import ClientError
+from botocore.session import get_session
 from retrying import retry
 
 from .config_reader import AuthMode, ConnectorConfig
+
+
+# Copied from https://gist.github.com/kapilt/ac8e222081f63ba64e93
+def assumed_session(role_arn, session_name, session=None):
+    """STS Role assume a boto3.Session
+
+    With automatic credential renewal.
+
+    Args:
+      role_arn: iam role arn to assume
+      session_name: client session identifier
+      session: an optional extant session, note session is captured
+               in a function closure for renewing the sts assumed role.
+
+    Notes: We have to poke at botocore internals a few times
+    """
+    if session is None:
+        session = boto3.Session()
+
+    def refresh():
+        credentials = session.client("sts").assume_role(RoleArn=role_arn, RoleSessionName=session_name)["Credentials"]
+        return dict(
+            access_key=credentials["AccessKeyId"],
+            secret_key=credentials["SecretAccessKey"],
+            token=credentials["SessionToken"],
+            # Silly that we basically stringify so it can be parsed again
+            expiry_time=credentials["Expiration"].isoformat(),
+        )
+
+    session_credentials = RefreshableCredentials.create_from_metadata(metadata=refresh(), refresh_using=refresh, method="sts-assume-role")
+
+    # so dirty.. it hurts, no clean way to set this outside of the internals poke
+    s = get_session()
+    s._credentials = session_credentials
+    region = session._session.get_config_variable("region") or "us-east-1"
+    s.set_config_variable("region", region)
+    return boto3.Session(botocore_session=s)
 
 
 class AwsHandler:
@@ -36,18 +75,10 @@ class AwsHandler:
                 region_name=self._connector_config.region,
             )
         elif self._connector_config.credentials_type == AuthMode.IAM_ROLE.value:
-            client = boto3.client("sts")
-            role = client.assume_role(
-                RoleArn=self._connector_config.role_arn,
-                RoleSessionName="airbyte-destination-aws-datalake",
-                DurationSeconds=43200,  # 12 hours, max length for STS
-            )
-            creds = role.get("Credentials", {})
-            self._session = boto3.Session(
-                aws_access_key_id=creds.get("AccessKeyId"),
-                aws_secret_access_key=creds.get("SecretAccessKey"),
-                aws_session_token=creds.get("SessionToken"),
-                region_name=self._connector_config.region,
+            self._session = assumed_session(
+                role_arn=self._connector_config.role_arn,
+                session_name="airbyte-destination-aws-datalake",
+                session=boto3.Session(region_name=self._connector_config.region),
             )
         else:
             raise Exception("Session wasn't created")
