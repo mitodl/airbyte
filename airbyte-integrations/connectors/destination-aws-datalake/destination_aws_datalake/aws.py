@@ -40,6 +40,7 @@ class AwsHandler:
             role = client.assume_role(
                 RoleArn=self._connector_config.role_arn,
                 RoleSessionName="airbyte-destination-aws-datalake",
+                DurationSeconds=43200,  # 12 hours, max length for STS
             )
             creds = role.get("Credentials", {})
             self._session = boto3.Session(
