@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2022 Airbyte, Inc., all rights reserved.
+# Copyright (c) 2023 Airbyte, Inc., all rights reserved.
 #
 
 
@@ -7,7 +7,7 @@ import json
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from datetime import datetime, timedelta
-from functools import cached_property, lru_cache
+from functools import lru_cache
 from traceback import format_exc
 from typing import Any, Dict, Iterable, Iterator, List, Mapping, MutableMapping, Optional, Union
 

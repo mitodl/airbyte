@@ -82,4 +82,4 @@ def _get_s3_client_args(provider: dict, authentication: dict = None) -> dict:
     return client_kv_args
 
 
-__all__ = ["make_s3_client", "make_s3_resource"]
+__all__ = ["make_s3_client"]
