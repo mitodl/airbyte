@@ -66,6 +66,8 @@ def render_report_output_prefix(ctx: click.Context) -> str:
     git_revision = ctx.obj["git_revision"]
     pipeline_start_timestamp = ctx.obj["pipeline_start_timestamp"]
     ci_context = ctx.obj["ci_context"]
+    ci_job_key = ctx.obj["ci_job_key"] if ctx.obj.get("ci_job_key") else ci_context
+
     sanitized_branch = git_branch.replace("/", "_")
 
     # get the command name for the current context, if a group then prepend the parent command name
@@ -75,7 +77,7 @@ def render_report_output_prefix(ctx: click.Context) -> str:
 
     path_values = [
         cmd,
-        ci_context,
+        ci_job_key,
         sanitized_branch,
         pipeline_start_timestamp,
         git_revision,
@@ -209,7 +211,7 @@ def test(
             git_branch=ctx.obj["git_branch"],
             git_revision=ctx.obj["git_revision"],
             modified_files=modified_files,
-            test_report_bucket=ctx.obj["ci_report_bucket_name"],
+            ci_report_bucket=ctx.obj["ci_report_bucket_name"],
             report_output_prefix=ctx.obj["report_output_prefix"],
             use_remote_secrets=ctx.obj["use_remote_secrets"],
             gha_workflow_run_url=ctx.obj.get("gha_workflow_run_url"),
@@ -223,12 +225,13 @@ def test(
     try:
         anyio.run(
             run_connectors_pipelines,
-            connectors_tests_contexts,
+            [connector_context for connector_context in connectors_tests_contexts],
             run_connector_test_pipeline,
             "Test Pipeline",
             ctx.obj["concurrency"],
             ctx.obj["execute_timeout"],
         )
+
     except Exception as e:
         click.secho(str(e), err=True, fg="red")
         update_global_commit_status_check_for_tests(ctx.obj, "failure")
@@ -251,7 +254,7 @@ def build(ctx: click.Context) -> bool:
             git_branch=ctx.obj["git_branch"],
             git_revision=ctx.obj["git_revision"],
             modified_files=modified_files,
-            test_report_bucket=ctx.obj["ci_report_bucket_name"],
+            ci_report_bucket=ctx.obj["ci_report_bucket_name"],
             report_output_prefix=ctx.obj["report_output_prefix"],
             use_remote_secrets=ctx.obj["use_remote_secrets"],
             gha_workflow_run_url=ctx.obj.get("gha_workflow_run_url"),
@@ -377,7 +380,7 @@ def publish(
                 docker_hub_password=docker_hub_password,
                 slack_webhook=slack_webhook,
                 reporting_slack_channel=slack_channel,
-                test_report_bucket=ctx.obj["ci_report_bucket_name"],
+                ci_report_bucket=ctx.obj["ci_report_bucket_name"],
                 report_output_prefix=ctx.obj["report_output_prefix"],
                 is_local=ctx.obj["is_local"],
                 git_branch=ctx.obj["git_branch"],
