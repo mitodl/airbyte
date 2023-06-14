@@ -9,6 +9,8 @@ import static io.airbyte.integrations.destination.s3.constant.S3Constants.SECRET
 import static io.airbyte.integrations.destination.s3.constant.S3Constants.S_3_BUCKET_REGION;
 import static io.airbyte.integrations.destination.s3_glue.MetastoreConstants.GLUE_DATABASE;
 import static io.airbyte.integrations.destination.s3_glue.MetastoreConstants.SERIALIZATION_LIBRARY;
+import static io.airbyte.integrations.destination.s3_glue.MetastoreConstants.NUMERIC_TYPE_ARG_NAME;
+import static io.airbyte.integrations.destination.s3_glue.MetastoreConstants.DECIMAL_SCALE_ARG_NAME;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
