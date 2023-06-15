@@ -1,3 +1,4 @@
+package io.airbyte.integrations.destination.s3_glue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.airbyte.integrations.destination.s3.jsonl.S3JsonlFormatConfig;
