@@ -8,6 +8,8 @@ import io.airbyte.cdk.integrations.destination.s3.S3DestinationConfig.Companion.
 import io.airbyte.cdk.integrations.destination.s3.util.ConfigTestUtils
 import io.airbyte.cdk.integrations.destination.s3.util.Flattening
 import io.airbyte.cdk.integrations.destination.s3.util.Flattening.Companion.fromValue
+import io.airbyte.cdk.integrations.destination.s3.util.Stringify
+import io.airbyte.cdk.integrations.destination.s3.util.Stringify.Companion.fromValue
 import io.airbyte.cdk.integrations.destination.s3.util.StreamTransferManagerFactory
 import io.airbyte.commons.json.Jsons.deserialize
 import org.apache.commons.lang3.reflect.FieldUtils
@@ -22,6 +24,17 @@ class S3JsonlFormatConfigTest {
         Assertions.assertEquals(Flattening.ROOT_LEVEL, fromValue("root level flattening"))
         try {
             fromValue("invalid flattening value")
+        } catch (e: Exception) {
+            Assertions.assertTrue(e is IllegalArgumentException)
+        }
+    }
+
+    @Test // Stringify enums can be created from value string
+    fun testStringifyCreationFromString() {
+        Assertions.assertEquals(Stringify.NO, Stringify.fromValue("default"))
+        Assertions.assertEquals(Stringify.STRINGIFY, Stringify.fromValue("stringify"))
+        try {
+            fromValue("invalid stringify value")
         } catch (e: Exception) {
             Assertions.assertTrue(e is IllegalArgumentException)
         }

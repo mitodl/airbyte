@@ -66,6 +66,10 @@ class JsonLSerializedBufferTest {
         runTest(FileBuffer(JSON_FILE_EXTENSION), true, 205L, 215L, getExpectedString())
     }
 
+    internal fun testStringifyJsonL() {
+        runTest(FileBuffer(JSON_FILE_EXTENSION), true, 205L, 215L, getExpectedString())
+    }
+
     private fun getExpectedString(): String {
         return Jsons.serialize(MESSAGE_DATA)
     }

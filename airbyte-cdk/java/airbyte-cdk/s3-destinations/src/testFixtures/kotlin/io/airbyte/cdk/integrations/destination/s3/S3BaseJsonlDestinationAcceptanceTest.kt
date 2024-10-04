@@ -6,6 +6,7 @@ package io.airbyte.cdk.integrations.destination.s3
 import com.amazonaws.services.s3.model.S3Object
 import com.fasterxml.jackson.databind.JsonNode
 import io.airbyte.cdk.integrations.destination.s3.util.Flattening
+import io.airbyte.cdk.integrations.destination.s3.util.Stringify
 import io.airbyte.commons.json.Jsons
 import java.io.BufferedReader
 import java.io.IOException
@@ -23,7 +24,8 @@ abstract class S3BaseJsonlDestinationAcceptanceTest protected constructor() :
                 mapOf(
                     "format_type" to outputFormat,
                     "flattening" to Flattening.NO.value,
-                    "compression" to Jsons.jsonNode(mapOf("compression_type" to "No Compression"))
+                    "compression" to Jsons.jsonNode(mapOf("compression_type" to "No Compression")),
+                    "stringify" to Stringify.NO.value
                 )
             )
 
