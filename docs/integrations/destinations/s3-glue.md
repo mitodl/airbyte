@@ -299,13 +299,16 @@ The json objects can have the following formats:
 Output files can be compressed. The default option is GZIP compression. If compression is selected,
 the output filename will have an extra extension (GZIP: `.jsonl.gz`).
 
+If your data has nested documents, you may want to enable the Stringify feature to ensure they are serialized as strings in the output. (**_available as a configuration option_**)
+
 ## Changelog
 
 <details>
   <summary>Expand to review</summary>
 
 | Version | Date       | Pull Request                                              | Subject                                                                                 |
-| :------ | :--------- | :-------------------------------------------------------- | :-------------------------------------------------------------------------------------- |
+|:--------|:-----------|:----------------------------------------------------------|:----------------------------------------------------------------------------------------|
+| 0.1.9   | 2024-10-07 | [#XXXXX](https://github.com/airbytehq/airbyte/pull/XXXXX) | Add a stringify option to serialize nested documents as strings                         |
 | 0.1.8   | 2024-01-03 | [#33924](https://github.com/airbytehq/airbyte/pull/33924) | Add new ap-southeast-3 AWS region                                                       |
 | 0.1.7   | 2023-05-01 | [25724](https://github.com/airbytehq/airbyte/pull/25724)  | Fix decimal type creation syntax to avoid overflow                                      |
 | 0.1.6   | 2023-04-13 | [25178](https://github.com/airbytehq/airbyte/pull/25178)  | Fix decimal precision and scale to allow for a wider range of numeric values            |
