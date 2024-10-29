@@ -91,7 +91,7 @@ public class GlueOperations implements MetastoreOperations {
                           .withSerdeInfo(
                               new SerDeInfo()
                                   .withSerializationLibrary(serializationLibrary)
-                                  .withSerializationLibrary(metastoreFormatConfig.getSerializationLibrary())
+                                  .withSerializationLibrary(metastoreFormatConfig.getSerializationLibrary())))
                   .withPartitionKeys(List.of())
                   .withParameters(Map.of("classification", "json")));
 

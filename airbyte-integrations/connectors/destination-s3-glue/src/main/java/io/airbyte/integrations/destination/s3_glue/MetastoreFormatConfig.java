@@ -4,10 +4,10 @@
 
 package io.airbyte.integrations.destination.s3_glue;
 
-import io.airbyte.cdk.integrations.destination.s3.S3FormatConfig;
+import io.airbyte.cdk.integrations.destination.s3.UploadFormatConfig;
 import io.airbyte.cdk.integrations.destination.s3.util.Stringify;
 
-public interface MetastoreFormatConfig extends S3FormatConfig {
+public interface MetastoreFormatConfig extends UploadFormatConfig {
 
   String getInputFormat();
 
@@ -15,6 +15,6 @@ public interface MetastoreFormatConfig extends S3FormatConfig {
 
   String getSerializationLibrary();
 
-  Stringify getStringifyType();
+  String getStringifyType();
 
 }
