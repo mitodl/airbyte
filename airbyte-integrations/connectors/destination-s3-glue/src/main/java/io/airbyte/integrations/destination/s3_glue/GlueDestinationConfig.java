@@ -23,10 +23,6 @@ import com.amazonaws.services.glue.AWSGlue;
 import com.amazonaws.services.glue.AWSGlueClient;
 import com.amazonaws.services.glue.AWSGlueClientBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
-// are these imports even necessary?
-import io.airbyte.cdk.integrations.destination.s3.UploadFormatConfig; // replaces S3FormatConfig.java
-// what replaces S3FormatConfigs.java
-
 
 import org.apache.commons.lang3.StringUtils;
 
