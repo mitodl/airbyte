@@ -9,6 +9,10 @@ import static io.airbyte.cdk.integrations.destination.s3.constant.S3Constants.SE
 import static io.airbyte.cdk.integrations.destination.s3.constant.S3Constants.S_3_BUCKET_REGION;
 import static io.airbyte.integrations.destination.s3_glue.GlueConstants.GLUE_DATABASE;
 import static io.airbyte.integrations.destination.s3_glue.GlueConstants.SERIALIZATION_LIBRARY;
+import static io.airbyte.integrations.destination.s3_glue.MetastoreConstants.GLUE_DATABASE;
+import static io.airbyte.integrations.destination.s3_glue.MetastoreConstants.SERIALIZATION_LIBRARY;
+import static io.airbyte.integrations.destination.s3_glue.MetastoreConstants.NUMERIC_TYPE_ARG_NAME;
+import static io.airbyte.integrations.destination.s3_glue.MetastoreConstants.DECIMAL_SCALE_ARG_NAME;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -19,6 +23,11 @@ import com.amazonaws.services.glue.AWSGlue;
 import com.amazonaws.services.glue.AWSGlueClient;
 import com.amazonaws.services.glue.AWSGlueClientBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
+// are these imports even necessary?
+import io.airbyte.cdk.integrations.destination.s3.UploadFormatConfig; // replaces S3FormatConfig.java
+// what replaces S3FormatConfigs.java
+
+
 import org.apache.commons.lang3.StringUtils;
 
 public class GlueDestinationConfig {
@@ -33,6 +42,10 @@ public class GlueDestinationConfig {
 
   private String serializationLibrary;
 
+  private String numericType;
+
+  private Integer decimalScale;
+
   private GlueDestinationConfig() {
 
   }
@@ -41,21 +54,28 @@ public class GlueDestinationConfig {
                                 String region,
                                 String accessKeyId,
                                 String secretAccessKey,
-                                String serializationLibrary) {
+                                String serializationLibrary,
+                                String numericType,
+                                Integer decimalScale) {
     this.database = database;
     this.region = region;
     this.accessKeyId = accessKeyId;
     this.secretAccessKey = secretAccessKey;
     this.serializationLibrary = serializationLibrary;
+    this.numericType = numericType;
+    this.decimalScale = decimalScale;
   }
 
   public static GlueDestinationConfig getInstance(JsonNode jsonNode) {
-    return new GlueDestinationConfig(
+    GlueDestinationConfig glueDestinationConfig = new GlueDestinationConfig(
         jsonNode.get(GLUE_DATABASE) != null ? jsonNode.get(GLUE_DATABASE).asText() : null,
         jsonNode.get(S_3_BUCKET_REGION) != null ? jsonNode.get(S_3_BUCKET_REGION).asText() : null,
         jsonNode.get(ACCESS_KEY_ID) != null ? jsonNode.get(ACCESS_KEY_ID).asText() : null,
         jsonNode.get(SECRET_ACCESS_KEY) != null ? jsonNode.get(SECRET_ACCESS_KEY).asText() : null,
-        jsonNode.get(SERIALIZATION_LIBRARY) != null ? jsonNode.get(SERIALIZATION_LIBRARY).asText() : "org.openx.data.jsonserde.JsonSerDe");
+        jsonNode.get(SERIALIZATION_LIBRARY) != null ? jsonNode.get(SERIALIZATION_LIBRARY).asText() : "org.openx.data.jsonserde.JsonSerDe",
+        jsonNode.get(NUMERIC_TYPE_ARG_NAME) != null ? jsonNode.get(NUMERIC_TYPE_ARG_NAME).asText(); null,
+        jsonNode.get(DECIMAL_SCALE_ARG_NAME) != null ? jsonNode.get(DECIMAL_SCALE_ARG_NAME).asInt() : null);
+    return GlueDestinationConfig;
   }
 
   public AWSGlue getAWSGlueInstance() {
