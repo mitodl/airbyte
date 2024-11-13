@@ -43,7 +43,7 @@ public class GlueOperations implements MetastoreOperations {
                           String tableName,
                           String location,
                           JsonNode jsonSchema,
-                          String serializationLibrary) {
+                          MetastoreFormatConfig metastoreFormatConfig) {
     try {
       GetTableRequest getTableRequest = new GetTableRequest()
           .withDatabaseName(databaseName)
@@ -61,12 +61,12 @@ public class GlueOperations implements MetastoreOperations {
                   .withStorageDescriptor(
                       new StorageDescriptor()
                           .withLocation(location)
-                          .withColumns(transformSchema(jsonSchema))
-                          .withInputFormat("org.apache.hadoop.mapred.TextInputFormat")
-                          .withOutputFormat("org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat")
+                          .withColumns(transformSchema(jsonSchema, metastoreFormatConfig))
+                          .withInputFormat(metastoreFormatConfig.getInputFormat())
+                          .withOutputFormat(metastoreFormatConfig.getOutputFormat())
                           .withSerdeInfo(
                               new SerDeInfo()
-                                  .withSerializationLibrary(serializationLibrary)
+                                  .withSerializationLibrary(metastoreFormatConfig.getSerializationLibrary())
                                   .withParameters(Map.of("paths", ",")))
 
                   )
@@ -84,12 +84,12 @@ public class GlueOperations implements MetastoreOperations {
                   .withStorageDescriptor(
                       new StorageDescriptor()
                           .withLocation(location)
-                          .withColumns(transformSchema(jsonSchema))
-                          .withInputFormat("org.apache.hadoop.mapred.TextInputFormat")
-                          .withOutputFormat("org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat")
+                          .withColumns(transformSchema(jsonSchema, metastoreFormatConfig))
+                          .withInputFormat(metastoreFormatConfig.getInputFormat())
+                          .withOutputFormat(metastoreFormatConfig.getOutputFormat())
                           .withSerdeInfo(
                               new SerDeInfo()
-                                  .withSerializationLibrary(serializationLibrary)
+                                  .withSerializationLibrary(metastoreFormatConfig.getSerializationLibrary())
                                   .withParameters(Map.of("paths", ","))))
                   .withPartitionKeys(List.of())
                   .withParameters(Map.of("classification", "json")));
@@ -109,32 +109,31 @@ public class GlueOperations implements MetastoreOperations {
 
   }
 
-  private Collection<Column> transformSchema(JsonNode jsonSchema) {
+  private Collection<Column> transformSchema(JsonNode jsonSchema, MetastoreFormatConfig metastoreFormatConfig) {
     if (jsonSchema.has("properties")) {
       Map<String, JsonNode> properties = objectMapper.convertValue(jsonSchema.get("properties"), new TypeReference<>() {});
       return properties.entrySet().stream()
-          .map(es -> new Column().withName(es.getKey()).withType(transformSchemaRecursive(es.getValue())))
+          .map(es -> new Column().withName(es.getKey()).withType(transformSchemaRecursive(es.getValue(), metastoreFormatConfig)))
           .collect(Collectors.toSet());
     } else {
       return Collections.emptySet();
     }
   }
 
-  private String transformSchemaRecursive(JsonNode jsonNode) {
+  private String transformSchemaRecursive(JsonNode jsonNode, MetastoreFormatConfig metastoreFormatConfig) {
     String type = filterTypes(jsonNode.get("type")).iterator().next();
     return switch (type) {
       // TODO(itaseski) support date-time and timestamp airbyte types
       case "string" -> "string";
       case "number" -> {
         if (jsonNode.has("airbyte_type") && jsonNode.get("airbyte_type").asText().equals("integer")) {
-          yield "int";
+          yield "bigint";
+        } else {
+          yield metastoreFormatConfig.getNumericType();
         }
-        // Default to use decimal as it is a more precise type and allows for large values
-        // Set the default scale 38 to allow for the widest range of values
-        yield "decimal(38)";
       }
       case "boolean" -> "boolean";
-      case "integer" -> "int";
+      case "integer" -> "bigint";
       case "array" -> {
         String arrayType = "array<";
         Set<String> itemTypes;
@@ -144,7 +143,7 @@ public class GlueOperations implements MetastoreOperations {
             // TODO(itaseski) use union instead of array when having multiple types (rare occurrence)?
             arrayType += "string>";
           } else {
-            String subtype = transformSchemaRecursive(jsonNode.get("items"));
+            String subtype = transformSchemaRecursive(jsonNode.get("items"), metastoreFormatConfig);
             arrayType += (subtype + ">");
           }
         } else
@@ -152,11 +151,11 @@ public class GlueOperations implements MetastoreOperations {
         yield arrayType;
       }
       case "object" -> {
-        if (jsonNode.has("properties")) {
+        if (jsonNode.has("properties") && metastoreFormatConfig.getStringifyType() != Stringify.NO) {
           String objectType = "struct<";
           Map<String, JsonNode> properties = objectMapper.convertValue(jsonNode.get("properties"), new TypeReference<>() {});
           String columnTypes = properties.entrySet().stream()
-              .map(p -> p.getKey() + ":" + transformSchemaRecursive(p.getValue()))
+              .map(p -> p.getKey() + ":" + transformSchemaRecursive(p.getValue(), metastoreFormatConfig))
               .collect(Collectors.joining(","));
           objectType += (columnTypes + ">");
           yield objectType;
