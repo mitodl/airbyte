@@ -50,6 +50,7 @@ public class S3GlueConsumerFactory {
                                        final BufferCreateFunction onCreateBuffer,
                                        final S3DestinationConfig s3Config,
                                        final GlueDestinationConfig glueConfig,
+                                       final MetastoreFormatConfig metastoreFormatConfig,
                                        final ConfiguredAirbyteCatalog catalog) {
     final List<S3GlueWriteConfig> writeConfigs = createWriteConfigs(storageOperations, s3Config, catalog);
     return new BufferedStreamConsumer(
@@ -59,7 +60,7 @@ public class S3GlueConsumerFactory {
             onCreateBuffer,
             catalog,
             flushBufferFunction(storageOperations, writeConfigs, catalog)),
-        onCloseFunction(storageOperations, metastoreOperations, writeConfigs, glueConfig, s3Config),
+        onCloseFunction(storageOperations, metastoreOperations, writeConfigs, glueConfig, s3Config, metastoreFormatConfig),
         catalog,
         storageOperations::isValidData);
   }
@@ -87,7 +88,7 @@ public class S3GlueConsumerFactory {
       final DestinationSyncMode syncMode = stream.getDestinationSyncMode();
       final JsonNode jsonSchema = abStream.getJsonSchema();
       ((ObjectNode) jsonSchema.get("properties")).putPOJO(JavaBaseConstants.COLUMN_NAME_AB_ID, Map.of("type", "string"));
-      ((ObjectNode) jsonSchema.get("properties")).putPOJO(JavaBaseConstants.COLUMN_NAME_EMITTED_AT, Map.of("type", "number"));
+      ((ObjectNode) jsonSchema.get("properties")).putPOJO(JavaBaseConstants.COLUMN_NAME_EMITTED_AT, Map.of("type", "integer"));
       final String location = "s3://" + s3Config.getBucketName() + "/" +
           fullOutputPath.substring(0, fullOutputPath.lastIndexOf("/") + 1);
       final S3GlueWriteConfig writeConfig =
@@ -156,7 +157,8 @@ public class S3GlueConsumerFactory {
                                           final MetastoreOperations metastoreOperations,
                                           final List<S3GlueWriteConfig> writeConfigs,
                                           GlueDestinationConfig glueDestinationConfig,
-                                          S3DestinationConfig s3DestinationConfig) {
+                                          S3DestinationConfig s3DestinationConfig,
+                                          MetastoreFormatConfig metaStoreFormatConfig) {
     return (hasFailed, streamSyncSummaryMap) -> {
       if (hasFailed) {
         LOGGER.info("Cleaning up destination started for {} streams", writeConfigs.size());
@@ -169,7 +171,7 @@ public class S3GlueConsumerFactory {
         for (final S3GlueWriteConfig writeConfig : writeConfigs) {
           metastoreOperations.upsertTable(glueDestinationConfig.getDatabase(),
               writeConfig.getStreamName(), writeConfig.getLocation(), writeConfig.getJsonSchema(),
-              glueDestinationConfig.getSerializationLibrary());
+              metaStoreFormatConfig);
         }
       }
     };
